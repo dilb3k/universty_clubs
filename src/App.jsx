@@ -76,14 +76,15 @@ const App = () => {
       <div className={`flex-grow pb-20 md:pb-0 ${shouldShowSidebar ? (isOpen ? 'md:ml-[250px]' : 'md:ml-[80px]') : ''} transition-all duration-300`}>
         {!isMobile && shouldShowSidebar && (
           <button
-            className="fixed mt-[280px] mr-[100px] h-[150px] w-[40px] bg-indigo-500 z-50 text-white p-2 shadow-lg hover:bg-indigo-600 transition-all"
-            onClick={toggleSidebar}
-            style={{
-              clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
-            }}
-          >
-            {isOpen ? <ArrowLeft /> : <ArrowRight />}
-          </button>
+          className="fixed mt-[280px] mr-[100px] h-[80px] w-[30px] bg-indigo-500 z-50 text-white p-2 shadow-lg hover:bg-indigo-600 transition-all"
+          onClick={toggleSidebar}
+          style={{
+            clipPath: 'polygon(0 0, 100% 50%, 0 100%)', // Uchini yaxshiroq ko‘rinishi uchun
+          }}
+        >
+          {isOpen ? <ArrowLeft /> : <ArrowRight />}
+        </button>
+        
         )}
 
         <Routes>

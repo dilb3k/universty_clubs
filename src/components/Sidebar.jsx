@@ -27,7 +27,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }) => {
     { name: "Profile", href: "/profile", icon: User },
     { name: "Posts", href: "/posts", icon: FileText },
     { name: "Rating", href: "/rating", icon: Star },
-    { name: "Abaut", href: "/abaut", icon: FiInfo },
+    { name: "Abaut", href: "/about", icon: FiInfo },
   ];
 
   // Get logged-in user details from localStorage

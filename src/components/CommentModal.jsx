@@ -2,96 +2,81 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 
-const CommentModal = ({ isOpen, onClose, onCommentSubmit, allComments, productId, userEmail }) => {
+const CommentModal = ({ isOpen, onClose, allComments, productId, onCommentSubmit }) => {
     const [newComment, setNewComment] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    const accessToken = localStorage.getItem('accessToken');
 
     if (!isOpen) return null;
 
-    // Faqat tegishli post uchun izohlarni filtrlash
+    // Tegishli post uchun izohlarni filtrlash
     const filteredComments = allComments
         .filter((comment) => comment.post_id === productId)
-        .sort((a, b) => new Date(b.time) - new Date(a.time)); // Yangi izohlar tepadan ko'rinishini ta'minlash
+        .sort((a, b) => new Date(b.commented_at) - new Date(a.commented_at));
 
     const handleCommentSubmit = async () => {
-        if (newComment.trim()) {
-            try {
-                const response = await axios.post('https://unversty-2.onrender.com/comments', {
-                    text: newComment,
-                    user_id: userEmail,
-                    post_id: productId,
-                    time: new Date().toISOString(), // Tashkent vaqti
-                });
-                onCommentSubmit(response.data); // Yangi izohni yuqoriga qo'shish
-                setNewComment(''); // Matn maydonini tozalash
-                setErrorMessage(''); // Xatolik xabarini tozalash
-            } catch (error) {
-                console.error('Izoh yuborishda xatolik yuz berdi:', error);
-                setErrorMessage('Izoh yuborishda xatolik yuz berdi. Iltimos, qayta urinib ko‘ring.');
-            }
-        } else {
+        if (!newComment.trim()) {
             setErrorMessage('Izoh matnini kiritishingiz kerak.');
+            return;
         }
-    };
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleCommentSubmit();
+        try {
+            const response = await axios.post(
+                `http://37.140.216.178/api/v1/posts/user/getcomments/`,
+                {
+                    text: newComment,
+                    post_id: productId,
+                    commented_at: new Date().toISOString(),
+                },
+                {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                }
+            );
+
+            onCommentSubmit(response.data); // Yangi izohni qo'shish
+            setNewComment('');
+            setErrorMessage('');
+        } catch (error) {
+            console.error('Izoh yuborishda xatolik yuz berdi:', error);
+            setErrorMessage('Izoh yuborishda xatolik yuz berdi.');
         }
     };
 
     return ReactDOM.createPortal(
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-60 z-50">
-            <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md relative max-h-[90vh] flex flex-col">
+            <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-3xl"
+                    className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl"
                 >
                     &times;
                 </button>
-
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Izohlar</h2>
-                <div className="flex-1 overflow-y-auto mb-4">
+                <h2 className="text-xl font-semibold mb-4">Izohlar</h2>
+                <div className="overflow-y-auto max-h-60 mb-4">
                     {filteredComments.length === 0 ? (
-                        <p className="text-gray-500 text-center">Hozircha hech qanday izoh yo'q.</p>
+                        <p className="text-gray-500">Hozircha izohlar yo'q.</p>
                     ) : (
                         filteredComments.map((comment) => (
-                            <div key={comment._id} className="mb-4 p-4 border-b border-gray-200">
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
-                                    <p className="font-semibold text-sm text-gray-800">{comment.user_id}</p>
-                                </div>
-                                <p className="mt-2 text-sm text-gray-700">{comment.text}</p>
-                                <p className="text-gray-500 text-xs mt-1">{comment.time}</p>
+                            <div key={comment.id} className="mb-4">
+                                <p className="font-semibold text-gray-800">{comment.text}</p>
+                                <p className="text-sm text-gray-500">{comment.commented_at}</p>
                             </div>
                         ))
                     )}
                 </div>
-                
-                {errorMessage && (
-                    <p className="text-red-500 text-sm mb-2">{errorMessage}</p>
-                )}
-
-                <div className="mt-4">
-                    <textarea
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Izoh qo'shing..."
-                        className="w-full p-3 border border-gray-300 rounded-lg mb-4 resize-none"
-                        rows="4"
-                        disabled={loggedInUser.email == "guest@example.com"}
-
-                    />
-                    <button
-                        onClick={handleCommentSubmit}
-                        className="w-full p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                        Izohni yuborish
-                    </button>
-                </div>
+                <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="w-full border p-2 rounded mb-4"
+                    placeholder="Izoh qo'shing..."
+                />
+                {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+                <button
+                    onClick={handleCommentSubmit}
+                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                >
+                    Izohni yuborish
+                </button>
             </div>
         </div>,
         document.body

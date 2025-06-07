@@ -48,7 +48,7 @@ const Login = () => {
 
             if (user) {
                 localStorage.setItem('loggedInUser', JSON.stringify(user));
-                navigate('/');
+                navigate('/profile');
                 return;
             }
 
